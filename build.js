@@ -6,7 +6,6 @@ const ejs = require('ejs');
 require('dotenv').config();
 
 // --- CONFIGURACIÓN ---
-// Lee las variables de tu archivo .env
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const GOOGLE_DRIVE_COVERS_FOLDER_ID = process.env.GOOGLE_DRIVE_COVERS_FOLDER_ID;
 const GOOGLE_DRIVE_PORTFOLIOS_FOLDER_ID = process.env.GOOGLE_DRIVE_PORTFOLIOS_FOLDER_ID;
@@ -26,14 +25,27 @@ const CSS_OUTPUT_PATH = path.join(OUTPUT_DIR, 'style.css');
  * Se autentica con la API de Google usando las credenciales.
  */
 async function authenticateGoogle() {
-    const auth = new google.auth.GoogleAuth({
-        keyFile: CREDENTIALS_PATH,
-        scopes: [
-            'https://www.googleapis.com/auth/spreadsheets.readonly',
-            'https://www.googleapis.com/auth/drive.readonly',
-        ],
-    });
-    return await auth.getClient();
+    // Si la variable de entorno existe (en Netlify), la usa.
+    if (process.env.GOOGLE_CREDENTIALS_JSON) {
+        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+        return google.auth.fromJSON(credentials, {
+            scopes: [
+                'https://www.googleapis.com/auth/spreadsheets.readonly',
+                'https://www.googleapis.com/auth/drive.readonly',
+            ],
+        });
+    } 
+    // Si no, usa el archivo local (para desarrollo en tu PC).
+    else {
+        const auth = new google.auth.GoogleAuth({
+            keyFile: CREDENTIALS_PATH,
+            scopes: [
+                'https://www.googleapis.com/auth/spreadsheets.readonly',
+                'https://www.googleapis.com/auth/drive.readonly',
+            ],
+        });
+        return await auth.getClient();
+    }
 }
 
 /**
@@ -78,7 +90,6 @@ async function getImagesFromFolder(drive, folderId) {
     if (!folderId) return [];
     const res = await drive.files.list({
         q: `'${folderId}' in parents and mimeType contains 'image/' and trashed=false`,
-        // *** ¡CORRECCIÓN FINAL AQUÍ! *** Se asegura de pedir siempre el id, nombre y thumbnailLink
         fields: 'files(id, name, thumbnailLink)',
         pageSize: 50
     });
@@ -93,10 +104,10 @@ async function fetchCoverImages(drive) {
     const menCoversFolderId = await findFolderIdByName(drive, GOOGLE_DRIVE_COVERS_FOLDER_ID, 'men');
     if (menCoversFolderId) {
         const menFiles = await getImagesFromFolder(drive, menCoversFolderId);
+        // Bucle "blindado": si un archivo no tiene nombre, simplemente lo ignora
         menFiles.forEach(file => {
-            if(file && file.name) {
-                // Usamos el nombre del archivo SIN extensión como clave
-                coverImages.set(path.parse(file.name).name, file.thumbnailLink)
+            if (file && file.name) { // <-- ¡LA CORRECCIÓN FINAL ESTÁ AQUÍ!
+                coverImages.set(path.parse(file.name).name, file.thumbnailLink);
             }
         });
     }
@@ -104,8 +115,8 @@ async function fetchCoverImages(drive) {
     if (womenCoversFolderId) {
         const womenFiles = await getImagesFromFolder(drive, womenCoversFolderId);
         womenFiles.forEach(file => {
-            if(file && file.name) {
-                coverImages.set(path.parse(file.name).name, file.thumbnailLink)
+            if (file && file.name) {
+                coverImages.set(path.parse(file.name).name, file.thumbnailLink);
             }
         });
     }
@@ -132,39 +143,29 @@ async function buildSite() {
     const authClient = await authenticateGoogle();
     const drive = google.drive({ version: 'v3', auth: authClient });
     
-    // Obtenemos todos los datos de Sheets y las portadas de Drive al mismo tiempo
     const [allModels, coverImages] = await Promise.all([
         fetchSheetData(authClient),
         fetchCoverImages(drive)
     ]);
     
-    // Obtenemos los IDs de las carpetas de portafolios (galerías)
     const menPortfolioFolderId = await findFolderIdByName(drive, GOOGLE_DRIVE_PORTFOLIOS_FOLDER_ID, 'men');
     const womenPortfolioFolderId = await findFolderIdByName(drive, GOOGLE_DRIVE_PORTFOLIOS_FOLDER_ID, 'women');
 
-    // Unimos toda la información para cada modelo
     const modelsWithData = await Promise.all(allModels.map(async (model) => {
-        // Asignar la imagen de portada
         const coverImageUrl = coverImages.get(model.modelSlug) || `https://via.placeholder.com/300x400.png?text=No+Image`;
-
-        // Asignar la galería de imágenes del portafolio
         const parentPortfolioFolderId = model.gender === 'men' ? menPortfolioFolderId : womenPortfolioFolderId;
         const modelPortfolioFolderId = await findFolderIdByName(drive, parentPortfolioFolderId, model.modelSlug);
         const portfolioFiles = await getImagesFromFolder(drive, modelPortfolioFolderId);
-        // Usamos el thumbnailLink (más grande) para asegurar que se vean
         const portfolioImageUrls = portfolioFiles.map(file => file.thumbnailLink ? file.thumbnailLink.replace('=s220', '=s1600') : '');
         
         console.log(`- Found ${portfolioImageUrls.length} portfolio images for ${model.fullName}`);
         
-        // Devolvemos el objeto completo con toda la información
         return { ...model, coverImageUrl, portfolioImageUrls };
     }));
 
-    // Filtramos los modelos por género
     const menModels = modelsWithData.filter(model => model.gender === 'men');
     const womenModels = modelsWithData.filter(model => model.gender === 'women');
 
-    // Generamos todas las páginas HTML
     for (const model of modelsWithData) {
         if (model.gender === 'unassigned') continue;
         const modelOutputPath = path.join(OUTPUT_DIR, 'models', model.gender, `${model.modelSlug}.html`);
@@ -174,7 +175,6 @@ async function buildSite() {
     if (womenModels.length > 0) await renderAndSave('category-page.ejs', { models: womenModels, title: "Women's Portfolio" }, path.join(OUTPUT_DIR, 'women.html'));
     await renderAndSave('index-page.ejs', { hasMen: menModels.length > 0, hasWomen: womenModels.length > 0 }, path.join(OUTPUT_DIR, 'index.html'));
     
-    // Copiamos el archivo CSS
     if (await fs.pathExists(CSS_SOURCE_PATH)) {
         await fs.copy(CSS_SOURCE_PATH, CSS_OUTPUT_PATH);
         console.log('Copied style.css to public/ directory.');
