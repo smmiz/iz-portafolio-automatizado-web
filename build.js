@@ -23,11 +23,15 @@ const CSS_OUTPUT_PATH = path.join(OUTPUT_DIR, 'style.css');
 
 /**
  * Se autentica con la API de Google usando las credenciales.
+ * Maneja tanto el archivo local como la variable de entorno codificada en Base64 para Netlify.
  */
 async function authenticateGoogle() {
-    // Si la variable de entorno existe (en Netlify), la usa.
+    // Si la variable de entorno existe (en Netlify), la decodifica desde Base64.
     if (process.env.GOOGLE_CREDENTIALS_JSON) {
-        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+        // Decodifica la cadena Base64 para obtener el JSON original
+        const decodedCredentials = Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString('utf8');
+        const credentials = JSON.parse(decodedCredentials);
+        
         return google.auth.fromJSON(credentials, {
             scopes: [
                 'https://www.googleapis.com/auth/spreadsheets.readonly',
@@ -104,9 +108,8 @@ async function fetchCoverImages(drive) {
     const menCoversFolderId = await findFolderIdByName(drive, GOOGLE_DRIVE_COVERS_FOLDER_ID, 'men');
     if (menCoversFolderId) {
         const menFiles = await getImagesFromFolder(drive, menCoversFolderId);
-        // Bucle "blindado": si un archivo no tiene nombre, simplemente lo ignora
         menFiles.forEach(file => {
-            if (file && file.name) { // <-- ¡LA CORRECCIÓN FINAL ESTÁ AQUÍ!
+            if (file && file.name) {
                 coverImages.set(path.parse(file.name).name, file.thumbnailLink);
             }
         });
@@ -185,6 +188,6 @@ async function buildSite() {
 
 // Ejecutamos el script y capturamos cualquier error
 buildSite().catch(err => {
-    console.error("\nBUILD FAILED:", err.message, err.stack);
+    console.error("\nBUILD FAILED:", err);
     process.exit(1);
 });
