@@ -108,7 +108,6 @@ async function fetchCoverImages(drive) {
     const menCoversFolderId = await findFolderIdByName(drive, GOOGLE_DRIVE_COVERS_FOLDER_ID, 'men');
     if (menCoversFolderId) {
         const menFiles = await getImagesFromFolder(drive, menCoversFolderId);
-        // Bucle "blindado": si un archivo no tiene nombre, simplemente lo ignora
         menFiles.forEach(file => {
             if (file && file.name) {
                 coverImages.set(path.parse(file.name).name, file.thumbnailLink);
@@ -189,6 +188,6 @@ async function buildSite() {
 
 // Ejecutamos el script y capturamos cualquier error
 buildSite().catch(err => {
-    console.error("\nBUILD FAILED:", err.message, err.stack);
+    console.error("\nBUILD FAILED:", err);
     process.exit(1);
 });
