@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-T-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido al Portafolio</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <h1>Nuestro Portafolio</h1>
+            <p>Selecciona una categoría para ver los modelos.</p>
+        </header>
+        <nav class="category-nav">
+            <% if (hasMen) { %>
+                <a href="./men.html" class="category-link"><h2>Portafolio Masculino</h2></a>
+            <% } %>
+            <% if (hasWomen) { %>
+                <a href="./women.html" class="category-link"><h2>Portafolio Femenino</h2></a>
+            <% } %>
+        </nav>
+    </div>
+</body>
+</html>

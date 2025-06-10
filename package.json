@@ -1,0 +1,22 @@
+{
+  "name": "automated-portfolio-generator",
+  "version": "1.0.0",
+  "description": "A script to generate a static portfolio website from Google Sheets and Drive.",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [
+    "nodejs",
+    "static-site-generator",
+    "google-api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "fs-extra": "^11.2.0",
+    "googleapis": "^140.0.1"
+  }
+}

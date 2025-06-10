@@ -1,0 +1,8 @@
+# Dependencies
+node_modules/
+
+# Environment Variables - SECRET
+.env
+
+# Google Credentials - SECRET
+google-credentials.json

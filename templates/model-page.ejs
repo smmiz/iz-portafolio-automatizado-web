@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= model.fullName %> - Portafolio</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../<%= model.gender %>.html" class="back-link">&larr; Volver al Portafolio <%= model.gender === 'men' ? "Masculino" : "Femenino" %></a>
+            <h1><%= model.fullName %></h1>
+            <% if (model.instagramHandle) { %>
+                <p class="instagram-link">
+                    <a href="https://instagram.com/<%= model.instagramHandle.replace('@', '') %>" target="_blank" rel="noopener noreferrer">
+                        <%= model.instagramHandle %>
+                    </a>
+                </p>
+            <% } %>
+        </header>
+        <main class="model-details">
+            <div class="description">
+                <h2>Sobre <%= model.fullName %></h2>
+                <p><%= model.description %></p>
+            </div>
+            <div class="portfolio-gallery">
+                <h2>Galería</h2>
+                <div class="photo-grid">
+                    <% if (model.portfolioImageUrls && model.portfolioImageUrls.length > 0) { %>
+                        <% model.portfolioImageUrls.forEach(imageUrl => { %>
+                            <div class="photo-item">
+                                <img src="<%= imageUrl %>" alt="Foto del portafolio de <%= model.fullName %>">
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>No hay fotos en la galería de este modelo.</p>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
