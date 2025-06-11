@@ -113,6 +113,7 @@ async function renderAndSave(templateName, data, outputPath) {
 
 async function buildSite() {
     console.log('Starting site build...');
+    console.log(process.env)
     await fs.emptyDir(OUTPUT_DIR);
     const authClient = await authenticateGoogle();
     const drive = google.drive({ version: 'v3', auth: authClient });
