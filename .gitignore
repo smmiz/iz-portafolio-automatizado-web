@@ -1,8 +1,16 @@
-# Dependencies
-node_modules/
-
-# Environment Variables - SECRET
+# Archivos de entorno (contienen información sensible)
 .env
 
-# Google Credentials - SECRET
+# Credenciales de Google (¡MUY IMPORTANTE NUNCA SUBIRLAS!)
 google-credentials.json
+
+# Carpeta de salida del build (generada, no es código fuente)
+public/
+
+# Módulos de Node (se instalan automáticamente en el servidor)
+node_modules/
+
+# Logs y archivos de depuración
+*.log
+.DS_Store # Mac
+.vscode/ # Opcional, si no quieres compartir configuraciones de VS Code
