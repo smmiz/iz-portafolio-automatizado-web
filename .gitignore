@@ -1,16 +1,12 @@
-# Archivos de entorno (contienen información sensible)
-.env
-
-# Credenciales de Google (¡MUY IMPORTANTE NUNCA SUBIRLAS!)
-google-credentials.json
-
-# Carpeta de salida del build (generada, no es código fuente)
-public/
-
-# Módulos de Node (se instalan automáticamente en el servidor)
+# Dependencias - No subir las librerías descargadas, se instalan solas.
 node_modules/
 
-# Logs y archivos de depuración
-*.log
-.DS_Store # Mac
-.vscode/ # Opcional, si no quieres compartir configuraciones de VS Code
+# Carpeta de Salida - No subir los archivos generados, Netlify los crea.
+public/
+
+# Secretos y Archivos de Entorno - ¡CRÍTICO PARA LA SEGURIDAD!
+.env
+google-credentials.json
+
+# Archivos temporales de prueba
+test.js

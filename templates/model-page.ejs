@@ -11,6 +11,7 @@
         <header>
             <a href="../../<%= model.gender %>.html" class="back-link">&larr; Volver al Portafolio <%= model.gender === 'men' ? "Masculino" : "Femenino" %></a>
             <h1><%= model.fullName %></h1>
+
             <% if (model.instagramHandle) { %>
                 <p class="instagram-link">
                     <a href="https://instagram.com/<%= model.instagramHandle.replace('@', '') %>" target="_blank" rel="noopener noreferrer">
@@ -19,11 +20,13 @@
                 </p>
             <% } %>
         </header>
+
         <main class="model-details">
             <div class="description">
                 <h2>Sobre <%= model.fullName %></h2>
                 <p><%= model.description %></p>
             </div>
+
             <div class="portfolio-gallery">
                 <h2>Galería</h2>
                 <div class="photo-grid">
